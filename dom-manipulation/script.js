@@ -1,13 +1,113 @@
 const API_URL = 'https://jsonplaceholder.typicode.com/posts'; // Mock API for demonstration
 
+const quotes = JSON.parse(localStorage.getItem('quotes')) || [];
+
+// Function to display quotes
+function displayQuotes(filteredQuotes) {
+    const quoteDisplay = document.getElementById('quoteDisplay');
+    if (filteredQuotes.length === 0) {
+        quoteDisplay.innerHTML = "No quotes available for this category.";
+    } else {
+        quoteDisplay.innerHTML = filteredQuotes.map(q => `"${q.text}" - <strong>${q.category}</strong>`).join('<br/>');
+    }
+}
+
+// Function to filter quotes
+function filterQuotes() {
+    const selectedCategory = document.getElementById('categoryFilter').value;
+    const filteredQuotes = selectedCategory === "all" 
+        ? quotes 
+        : quotes.filter(q => q.category === selectedCategory);
+    
+    displayQuotes(filteredQuotes);
+    localStorage.setItem('selectedCategory', selectedCategory); // Save selected category
+}
+
+// Function to populate categories
+function populateCategories() {
+    const categoryFilter = document.getElementById('categoryFilter');
+    const categories = [...new Set(quotes.map(q => q.category))];
+
+    categoryFilter.innerHTML = '<option value="all">All Categories</option>'; // Reset filter options
+
+    categories.forEach(category => {
+        const option = document.createElement('option');
+        option.value = category;
+        option.textContent = category;
+        categoryFilter.appendChild(option);
+    });
+
+    const lastSelectedCategory = localStorage.getItem('selectedCategory') || 'all';
+    categoryFilter.value = lastSelectedCategory;
+    filterQuotes(); // Display quotes based on the last selected category
+}
+
+// Function to show a random quote
+function showRandomQuote() {
+    const randomIndex = Math.floor(Math.random() * quotes.length);
+    const quote = quotes[randomIndex];
+    const quoteDisplay = document.getElementById('quoteDisplay');
+
+    quoteDisplay.innerHTML = `"${quote.text}" - <strong>${quote.category}</strong>`;
+}
+
+// Function to add a new quote
+async function addQuote() {
+    const quoteText = document.getElementById('newQuoteText').value;
+    const quoteCategory = document.getElementById('newQuoteCategory').value;
+
+    if (quoteText && quoteCategory) {
+        const newQuote = { text: quoteText, category: quoteCategory };
+        quotes.push(newQuote);
+        await saveQuotesToServer(newQuote); // Save to server
+        saveQuotes(); // Save to local storage
+        document.getElementById('newQuoteText').value = '';
+        document.getElementById('newQuoteCategory').value = '';
+        alert('Quote added successfully!');
+        populateCategories(); // Update the categories dropdown
+    } else {
+        alert('Please enter both a quote and a category.');
+    }
+}
+
+// Function to save quotes to local storage
+function saveQuotes() {
+    localStorage.setItem('quotes', JSON.stringify(quotes));
+}
+
+// Function to save a new quote to the server
+async function saveQuotesToServer(quote) {
+    try {
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                title: quote.text, // Using title to represent quote text
+                body: quote.category // Using body to represent the category
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+
+        const data = await response.json();
+        console.log('Quote saved to server:', data);
+    } catch (error) {
+        console.error('Error saving quote to server:', error);
+    }
+}
+
+// Function to fetch quotes from the server
 async function fetchQuotesFromServer() {
     try {
         const response = await fetch(API_URL);
         const serverQuotes = await response.json();
-        // Simulate processing server data (using title as quote and body as category)
         const processedQuotes = serverQuotes.map(q => ({
             text: q.title,
-            category: q.body || 'General' // Default category if none provided
+            category: q.body || 'General'
         }));
         return processedQuotes;
     } catch (error) {
@@ -24,32 +124,26 @@ setInterval(async () => {
 }, 30000); // Check every 30 seconds
 
 function resolveConflicts(serverQuotes) {
-    // Load local quotes
     const localQuotes = JSON.parse(localStorage.getItem('quotes')) || [];
 
-    // Check for conflicts and update local storage
     const mergedQuotes = [...localQuotes];
 
     serverQuotes.forEach(serverQuote => {
-        const existingQuoteIndex = localQuotes.findIndex(q => q.text === serverQuote.text);
+        const existingQuoteIndex = localQuotes.findIndex(q => q.text === serverQuote.title);
         if (existingQuoteIndex === -1) {
-            // If quote doesn't exist locally, add it
-            mergedQuotes.push(serverQuote);
+            mergedQuotes.push({ text: serverQuote.title, category: serverQuote.body });
         } else {
             // Conflict: quote exists locally
-            // Simple resolution strategy: keep the server version
-            mergedQuotes[existingQuoteIndex] = serverQuote;
-            notifyUser(`Conflict resolved for: "${serverQuote.text}". Updated to server version.`);
+            mergedQuotes[existingQuoteIndex] = { text: serverQuote.title, category: serverQuote.body };
+            notifyUser(`Conflict resolved for: "${serverQuote.title}". Updated to server version.`);
         }
     });
 
-    // Save merged quotes back to local storage
     localStorage.setItem('quotes', JSON.stringify(mergedQuotes));
-    populateCategories(); // Update the dropdown with new categories
-    displayQuotes(mergedQuotes); // Display updated quotes
+    populateCategories();
+    displayQuotes(mergedQuotes);
 }
 
-// Notify the user about conflicts
 function notifyUser(message) {
     const notification = document.createElement('div');
     notification.textContent = message;
@@ -63,3 +157,9 @@ function notifyUser(message) {
         notification.remove();
     }, 5000); // Remove notification after 5 seconds
 }
+
+// Initialize the app
+window.onload = function() {
+    populateCategories(); // Populate categories on load
+    showRandomQuote(); // Show a random quote
+};
