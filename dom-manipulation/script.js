@@ -1,3 +1,5 @@
+// script.js
+
 const quotes = [
     { text: "The only limit to our realization of tomorrow is our doubts of today.", category: "Motivation" },
     { text: "Life is what happens when you're busy making other plans.", category: "Life" },
@@ -5,14 +7,14 @@ const quotes = [
     { text: "You only live once, but if you do it right, once is enough.", category: "Life" }
 ];
 
-// Function to display a random quote
+// Function to display a random quote using innerHTML
 function showRandomQuote() {
     const randomIndex = Math.floor(Math.random() * quotes.length);
     const quote = quotes[randomIndex];
     const quoteDisplay = document.getElementById('quoteDisplay');
 
-    // Use textContent to update the quote display safely
-    quoteDisplay.textContent = `"${quote.text}" - ${quote.category}`;
+    // Using innerHTML to update the quote display
+    quoteDisplay.innerHTML = `"${quote.text}" - <strong>${quote.category}</strong>`;
 }
 
 // Function to add a new quote
