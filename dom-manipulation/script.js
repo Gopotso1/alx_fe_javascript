@@ -1,6 +1,6 @@
 const API_URL = 'https://jsonplaceholder.typicode.com/posts'; // Mock API for demonstration
 
-const quotes = JSON.parse(localStorage.getItem('quotes')) || [];
+let quotes = JSON.parse(localStorage.getItem('quotes')) || [];
 
 // Function to display quotes
 function displayQuotes(filteredQuotes) {
@@ -84,8 +84,8 @@ async function saveQuotesToServer(quote) {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                title: quote.text, // Using title to represent quote text
-                body: quote.category // Using body to represent the category
+                title: quote.text,
+                body: quote.category
             })
         });
 
@@ -115,13 +115,16 @@ async function fetchQuotesFromServer() {
     }
 }
 
-// Periodically check for new quotes from the server
-setInterval(async () => {
+// Sync quotes with the server and local storage
+async function syncQuotes() {
     const serverQuotes = await fetchQuotesFromServer();
     if (serverQuotes) {
         resolveConflicts(serverQuotes);
     }
-}, 30000); // Check every 30 seconds
+}
+
+// Periodically sync quotes from the server
+setInterval(syncQuotes, 30000); // Sync every 30 seconds
 
 function resolveConflicts(serverQuotes) {
     const localQuotes = JSON.parse(localStorage.getItem('quotes')) || [];
@@ -140,6 +143,7 @@ function resolveConflicts(serverQuotes) {
     });
 
     localStorage.setItem('quotes', JSON.stringify(mergedQuotes));
+    quotes = mergedQuotes; // Update the quotes variable
     populateCategories();
     displayQuotes(mergedQuotes);
 }
