@@ -18,7 +18,7 @@
             padding: 20px;
             background: #f9f9f9;
         }
-        input {
+        input, select {
             margin: 5px;
             padding: 10px;
             width: calc(50% - 22px);
@@ -40,6 +40,14 @@
         <button id="addQuoteButton">Add Quote</button>
         <button id="exportQuotesButton">Export Quotes as JSON</button>
         <input type="file" id="importFile" accept=".json" />
+    </div>
+
+    <div>
+        <label for="categoryFilter">Filter by Category:</label>
+        <select id="categoryFilter" onchange="filterQuotes()">
+            <option value="all">All Categories</option>
+            <!-- Dynamically populated categories -->
+        </select>
     </div>
 
     <script src="script.js"></script>
