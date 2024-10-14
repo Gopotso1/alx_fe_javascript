@@ -120,6 +120,7 @@ async function syncQuotes() {
     const serverQuotes = await fetchQuotesFromServer();
     if (serverQuotes) {
         resolveConflicts(serverQuotes);
+        notifyUser("Quotes synced with server!"); // Notify user about successful sync
     }
 }
 
@@ -167,3 +168,4 @@ window.onload = function() {
     populateCategories(); // Populate categories on load
     showRandomQuote(); // Show a random quote
 };
+
