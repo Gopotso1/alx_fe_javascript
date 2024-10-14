@@ -56,23 +56,21 @@ function createAddQuoteForm() {
 
     const addButton = document.createElement('button');
     addButton.textContent = 'Add Quote';
-    addButton.onclick = addQuote;
+    addButton.addEventListener('click', addQuote); // Using addEventListener
 
-    formContainer.appendChild(quoteInput);
-    formContainer.appendChild(categoryInput);
-    formContainer.appendChild(addButton);
-
-    // Create export and import buttons
     const exportButton = document.createElement('button');
     exportButton.textContent = 'Export Quotes as JSON';
-    exportButton.onclick = exportToJson;
+    exportButton.addEventListener('click', exportToJson); // Using addEventListener
 
     const importInput = document.createElement('input');
     importInput.id = 'importFile';
     importInput.type = 'file';
     importInput.accept = '.json';
-    importInput.onchange = importFromJsonFile;
+    importInput.addEventListener('change', importFromJsonFile); // Using addEventListener
 
+    formContainer.appendChild(quoteInput);
+    formContainer.appendChild(categoryInput);
+    formContainer.appendChild(addButton);
     formContainer.appendChild(exportButton);
     formContainer.appendChild(importInput);
 
